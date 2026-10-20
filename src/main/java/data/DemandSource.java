@@ -1,4 +1,7 @@
+
 package data;
 
-public class DemandSource {
+public interface DemandSource {
+    int getOccupancyPercent();
 }
+

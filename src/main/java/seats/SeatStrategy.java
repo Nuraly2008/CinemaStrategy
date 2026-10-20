@@ -1,4 +1,6 @@
+
 package seats;
 
-public class SeatStrategy {
+public interface SeatStrategy {
+    int[] selectSeats(boolean[] available, int count);
 }

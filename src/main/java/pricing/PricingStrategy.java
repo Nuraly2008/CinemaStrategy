@@ -1,4 +1,7 @@
+
 package pricing;
 
-public class PricingStrategy {
+public interface PricingStrategy {
+    double calculate(double price, int tickets, boolean weekday);
 }
+
