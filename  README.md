@@ -1,217 +1,108 @@
-
 # Cinema Ticket Booking System
 
-## Assignment 5 — Strategy Design Pattern
+**Assignment 5 — Strategy Design Pattern**
 
 A Java console application demonstrating the Strategy Design Pattern through cinema ticket pricing and seat selection.
 
-The project follows Lecture 7 concepts: interchangeable algorithms, runtime strategy switching, Open/Closed Principle, Single Responsibility Principle, and isolation from change.
-
 ## Technologies
 
-- Java 17+
+- Java 17
 - Maven
 - JUnit 5
-- Strategy Design Pattern
-- Git / GitHub
+- Strategy Pattern
 
-## 1. Project Overview
+## Strategy Families
 
-The cinema system supports two independent strategy families.
-
-### Family 1: Ticket Pricing
+### 1. Ticket Pricing
 
 | Strategy | Description |
 |---|---|
-| RegularPricing | Calculates the full ticket price. |
-| StudentPricing | Applies a 20% weekday discount when occupancy is below 80%. |
-| GroupPricing | Provides one free ticket for every four tickets. |
+| RegularPricing | Standard ticket price |
+| StudentPricing | 20% weekday discount when occupancy is below 80% |
+| GroupPricing | Every fourth ticket is free |
 
-### Family 2: Seat Selection
+### 2. Seat Selection
 
 | Strategy | Description |
 |---|---|
-| FrontSeatStrategy | Selects the first available seats. |
-| CenterSeatStrategy | Selects seats closest to the center. |
-| TogetherSeatStrategy | Finds consecutive available seats for a group. |
+| FrontSeatStrategy | Selects the first available seats |
+| CenterSeatStrategy | Selects seats closest to the center |
+| TogetherSeatStrategy | Selects consecutive available seats |
 
-## 2. Strategy Pattern Structure
-
-Each strategy family contains:
-
-- Strategy Interface
-- Three Concrete Strategies
-- Context Class
-- Selector Class
-
-Pricing:
-
-PricingStrategy
-- RegularPricing
-- StudentPricing
-- GroupPricing
-
-PricingContext stores the selected PricingStrategy.
-
-PricingSelector chooses strategies based on customer information.
-
-Seats:
-
-SeatStrategy
-- FrontSeatStrategy
-- CenterSeatStrategy
-- TogetherSeatStrategy
-
-SeatContext stores the selected SeatStrategy.
-
-SeatSelector chooses strategies based on group size and preferences.
-
-## 3. Class Responsibilities (SRP)
-
-Each class has one responsibility.
+## Class Responsibilities (SRP)
 
 | Class | Responsibility |
 |---|---|
-| Main | Demonstrates the cinema booking functionality. |
-| PricingStrategy | Defines the contract for ticket pricing algorithms. |
-| RegularPricing | Calculates standard ticket costs. |
-| StudentPricing | Calculates demand-dependent student ticket costs. |
-| GroupPricing | Calculates group ticket costs using free-ticket rules. |
-| PricingContext | Delegates price calculation to the selected strategy. |
-| PricingSelector | Selects the appropriate ticket pricing algorithm. |
-| PricingCalculator | Provides compatibility with the original pricing API. |
-| SeatStrategy | Defines the contract for seat selection algorithms. |
-| FrontSeatStrategy | Finds available seats starting from the front. |
-| CenterSeatStrategy | Finds available seats closest to the center. |
-| TogetherSeatStrategy | Finds consecutive available seats. |
-| SeatContext | Delegates seat selection to the selected strategy. |
-| SeatSelector | Selects a seat algorithm based on booking preferences. |
-| DemandSource | Defines the contract for cinema occupancy data. |
-| SimulatedDemandSource | Supplies simulated cinema occupancy information. |
-| PricingTest | Verifies the original ticket pricing behavior. |
-| PricingRulesTest | Verifies pricing strategies, selection rules, external data usage. |
-| SeatTest | Verifies seat strategies, selection rules, runtime switching. |
+| Main | Demonstrates application functionality |
+| PricingStrategy | Defines the pricing contract |
+| RegularPricing | Calculates standard prices |
+| StudentPricing | Calculates student prices |
+| GroupPricing | Calculates group prices |
+| PricingContext | Executes the selected pricing strategy |
+| PricingSelector | Selects pricing strategies |
+| PricingCalculator | Preserves the original pricing API |
+| SeatStrategy | Defines the seat selection contract |
+| FrontSeatStrategy | Finds the first available seats |
+| CenterSeatStrategy | Finds central seats |
+| TogetherSeatStrategy | Finds consecutive seats |
+| SeatContext | Executes the selected seat strategy |
+| SeatSelector | Selects seat strategies |
+| DemandSource | Defines the occupancy data contract |
+| SimulatedDemandSource | Provides simulated occupancy data |
+| PricingTest | Tests original pricing behavior |
+| PricingRulesTest | Tests pricing strategies |
+| SeatTest | Tests seat selection behavior |
 
-## 4. Why Strategy Instead of State or Template Method?
+## Why Strategy Pattern?
 
-This project uses the Strategy Design Pattern because cinema booking operations can be performed using several interchangeable algorithms. The system needs to change pricing rules and seat selection methods without changing the main business logic.
+The Strategy Pattern allows multiple algorithms to implement the same operation through a common interface. In this project, pricing and seat selection have three interchangeable strategies each.
 
-Strategy defines a common interface for each family of algorithms. Every concrete strategy implements its own behavior. The Context class stores a reference to the selected strategy and delegates the operation to it. Using setStrategy(), the application can replace an algorithm during runtime.
+The Context classes delegate work to strategies without knowing their concrete implementations. The `setStrategy()` method allows algorithms to change at runtime.
 
-This design follows the Open/Closed Principle. A new strategy can be introduced by creating a class implementing the existing interface. The Context class does not require modification. The application can also test each algorithm independently.
+This follows the **Open/Closed Principle** because new strategies can be added without modifying the Context classes.
 
-The State Pattern has a different purpose. State represents the current internal condition of an object. Behavior changes because the object transitions between states. In this project, strategies represent alternative algorithms selected by the client or Selector. No internal state machine controls those changes.
+**Strategy vs State:** State changes behavior according to an object's internal state. Strategy allows the application to choose independent algorithms.
 
-Template Method also differs from Strategy. Template Method uses inheritance and defines a fixed algorithm structure in a base class. Subclasses override particular steps. Strategy instead uses composition. The Context contains a Strategy object and can replace the complete algorithm at runtime.
+**Strategy vs Template Method:** Template Method uses inheritance to customize algorithm steps. Strategy uses composition to replace complete algorithms.
 
-Therefore, Strategy is the most suitable pattern for this cinema booking application because the main requirement is selecting interchangeable algorithms while keeping the Context independent of their implementations.
+Therefore, Strategy is suitable for this project because pricing and seat selection require flexible algorithm selection rather than state transitions.
 
-## 5. Isolation from Change
+## External Data Isolation
 
-StudentPricing requires cinema occupancy information.
+`StudentPricing` uses the `DemandSource` interface to obtain cinema occupancy data.
 
-Instead of accessing a concrete data provider directly, it depends on the DemandSource interface.
+`SimulatedDemandSource` returns simulated data. Unit tests use fake data sources with fixed values, making testing independent of external services.
 
-SimulatedDemandSource provides simulated occupancy data.
+## Testing
 
-JUnit tests use fake implementations returning fixed occupancy values.
+JUnit 5 tests cover strategies, Selector rules, runtime switching, fake data sources, and parameterized testing.
 
-This approach isolates external dependencies and supports independent unit testing.
-
-## 6. Automatic Strategy Selection
-
-PricingSelector:
-- Four or more tickets: GroupPricing
-- Student booking on a weekday: StudentPricing
-- Other bookings: RegularPricing
-
-SeatSelector:
-- Multiple people: TogetherSeatStrategy
-- One person preferring the center: CenterSeatStrategy
-- Other single-person bookings: FrontSeatStrategy
-
-## 7. Demo
-
-The Main class demonstrates:
-
-1. Processing identical inputs using different pricing strategies.
-2. Manual strategy selection.
-3. Automatic strategy selection.
-4. Switching strategies at runtime.
-5. Three different seat selection algorithms.
-6. Simulated external occupancy data.
-
-Example output:
-
-    Regular: 8000.0 KZT
-    Student: 6400.0 KZT
-    Group: 6000.0 KZT
-
-    Front: [0, 1]
-    Center: [4, 5]
-    Together: [0, 1]
-
-## 8. Unit Testing
-
-The project uses JUnit 5.
-
-Tests cover:
-- Individual pricing strategies
-- Individual seat selection strategies
-- Selector rules
-- Runtime strategy switching
-- Invalid input handling
-- Fake external data sources
-- Parameterized strategy tests
-
-Test classes:
-
-| Test Class | Number of Tests |
-|---|---|
+| Test Class | Tests |
+|---|---:|
 | PricingTest | 7 |
 | PricingRulesTest | 8 |
 | SeatTest | 11 |
-| Total | 26 |
+| **Total** | **26** |
 
-Run tests using:
+**Result: BUILD SUCCESS — 26 tests passed.**
 
-    mvn clean test
+## Refactoring History
 
-## 9. Refactoring History
+**BEFORE:** All pricing algorithms were implemented inside `PricingCalculator` using switch-case.
 
-The project demonstrates refactoring from a switch-based implementation to the Strategy Design Pattern.
+[View BEFORE Commit](https://github.com/Nuraly2008/CinemaStrategy/commit/cc41405)
 
-### Before Refactoring
+**AFTER:** Pricing algorithms were separated into classes implementing `PricingStrategy`. The original seven tests still pass.
 
-Initially, PricingCalculator used a switch statement to implement all pricing algorithms inside a single class.
+[View AFTER Commit](https://github.com/Nuraly2008/CinemaStrategy/commit/98cc7f8)
 
-Commit: cc41405
-
-### After Refactoring
-
-Each pricing algorithm was extracted into a separate class implementing PricingStrategy.
-
-PricingContext delegates calculations to the selected strategy.
-
-PricingSelector handles algorithm selection.
-
-The original seven pricing tests remain unchanged and pass after refactoring.
-
-The GitHub links to both commits are included in the repository history.
-
-## 10. How to Run
+## How to Run
 
 1. Open the project in IntelliJ IDEA.
 2. Load Maven dependencies.
-3. Open Main.java.
-4. Run the main() method.
-5. Observe pricing and seat selection results.
-6. Run JUnit tests.
+3. Run `Main.java`.
+4. Run tests using Maven → Lifecycle → test.
 
 ## Conclusion
 
-The application demonstrates the Strategy Design Pattern using two families of interchangeable algorithms.
-
-The design supports runtime switching, algorithm extension, independent testing, and external dependency isolation.
-
-The implementation follows the principles covered in Lecture 7.
+The project demonstrates interchangeable algorithms, runtime switching, automatic strategy selection, external data isolation, and clean class responsibilities.
